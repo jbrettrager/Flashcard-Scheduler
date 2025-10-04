@@ -19,5 +19,8 @@ class ReviewResult(models.Model):
     rating = models.IntegerField(
         choices=ReviewRating.choices
     )
-    due_date = models.DateTimeField()
+    due_date = models.DateTimeField(null=True, blank=True)
     idempotency_key = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = ('flashcard', 'userID')
