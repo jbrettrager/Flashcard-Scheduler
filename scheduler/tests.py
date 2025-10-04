@@ -1,5 +1,10 @@
 from django.test import TestCase
 from django.utils import timezone
+from django.urls import reverse
+from rest_framework import status
+
+from rest_framework.test import APITestCase
+
 from datetime import timedelta
 
 from scheduler.models import Flashcard, ReviewResult, ReviewRating
@@ -78,3 +83,22 @@ class ReviewResultSerializerTest(TestCase):
         self.assertEqual(data['rating'], ReviewRating.FORGOT)
         self.assertEqual(data['idempotency_key'], 'serializerTest')
 
+# POST /review API Endpoint Tests
+class ReviewAPITest(APITestCase):
+    def setUp(self):
+        self.userID = 102
+        self.flashcard = Flashcard.objects.create(vocab="Testing API")
+        self.url = reverse('review')
+        self.payload = {
+            'flashcard': self.flashcard.id,
+            'userID': self.userID,
+            'rating': ReviewRating.REMEMBERED,
+            'idempotency_key': 'reviewAPItest'
+        }
+
+    def test_post_review_endpoint(self):
+        response = self.client.post(self.url, self.payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = response.json()
+        self.assertIn('new_due_date', data)
