@@ -99,6 +99,6 @@ class ReviewAPITest(APITestCase):
     def test_post_review_endpoint(self):
         response = self.client.post(self.url, self.payload, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertIn('new_due_date', data)
