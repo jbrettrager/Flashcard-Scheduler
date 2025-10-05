@@ -10,7 +10,15 @@ from .services import process_review
 # Create your views here.
 class ReviewAPIView(APIView):
     def post(self, request):
-        serializer = ReviewResultSerializer(data=request.data)
+        flashcard_id = request.data['flashcard']
+        user_id = request.data['userID']
+
+        existing_review = ReviewResult.objects.filter(userID=user_id, flashcard=flashcard_id).first()
+
+        serializer = ReviewResultSerializer(
+            instance=existing_review,
+            data=request.data)
+
         if serializer.is_valid():
             review_instance = serializer.save()
             due_date = process_review(
