@@ -12,6 +12,8 @@ class ReviewAPIView(APIView):
     def post(self, request):
         flashcard_id = request.data['flashcard']
         user_id = request.data['userID']
+        rating = request.data['rating']
+        idempotency_key = request.data['idempotency_key']
 
         existing_review = ReviewResult.objects.filter(userID=user_id, flashcard=flashcard_id).first()
 
@@ -20,14 +22,13 @@ class ReviewAPIView(APIView):
             data=request.data)
 
         if serializer.is_valid():
-            review_instance = serializer.save()
             due_date = process_review(
-                user_id=review_instance.userID,
-                flashcard=review_instance.flashcard,
-                rating=review_instance.rating,
-                idempotency_key=review_instance.idempotency_key,
+                user_id=user_id,
+                flashcard=flashcard_id,
+                rating=rating,
+                idempotency_key=idempotency_key,
             )
-            return Response({'new_due_date': due_date})
+            return Response({'new_due_date': due_date.isoformat()})
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
