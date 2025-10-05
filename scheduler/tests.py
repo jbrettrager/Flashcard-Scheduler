@@ -102,3 +102,72 @@ class ReviewAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertIn('new_due_date', data)
+
+class DueCardsAPITest(APITestCase):
+    def setUp(self):
+        self.userID = 103
+        self.flashcard1 = Flashcard.objects.create(vocab="Testing GET endpoint, card 1")
+        self.flashcard2 = Flashcard.objects.create(vocab="Testing GET endpoint, card 2")
+
+        self.due_soon = timezone.now() + timedelta(minutes=1)
+        self.due_later = timezone.now() + timedelta(days=15)
+
+        ReviewResult.objects.create(
+            flashcard=self.flashcard1,
+            userID=self.userID,
+            rating=ReviewRating.INSTANT,
+            due_date=self.due_later,
+            idempotency_key='dueAPITestKey1'
+        )
+        ReviewResult.objects.create(
+            flashcard=self.flashcard2,
+            userID=self.userID,
+            rating=ReviewRating.FORGOT,
+            due_date=self.due_soon,
+            idempotency_key='dueAPITestKey2'
+        )
+
+        self.url=reverse('due-cards',kwargs={'user_id':self.userID})
+
+    def test_get_due_cards(self):
+        until_time = (timezone.now() + timedelta(days=7)).isoformat()
+        response = self.client.get(self.url, {'until': until_time}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        returned_cards = [item['flashcard_vocab'] for item in data]
+        self.assertNotIn(self.flashcard1.vocab, returned_cards)
+        self.assertIn(self.flashcard2.vocab, returned_cards)
+
+class MonotonicIntervalTest(APITestCase):
+    def setUp(self):
+        self.userID = 105
+        self.flashcard = Flashcard.objects.create(vocab="Testing Monotonic Interval")
+
+        self.review_url = reverse('review')
+        self.review_payload_1 = {
+            'flashcard': self.flashcard.id,
+            'userID': self.userID,
+            'rating': ReviewRating.INSTANT,
+            'idempotency_key': "monotonicAPITest"
+        }
+        self.review_payload_2 = {
+            'flashcard': self.flashcard.id,
+            'userID': self.userID,
+            'rating': ReviewRating.REMEMBERED,
+            "idempotency_key": "monotonicAPITest2"
+        }
+
+    def test_monotonic_interval(self):
+        first_response = self.client.post(self.review_url, self.review_payload_1, format='json')
+        first_data = first_response.json()
+        first_due_date = first_data['new_due_date']
+
+        second_response = self.client.post(self.review_url, self.review_payload_2, format='json')
+        second_data = second_response.json()
+        second_due_date = second_data['new_due_date']
+
+        self.assertEqual(first_due_date, second_due_date)
+
+
