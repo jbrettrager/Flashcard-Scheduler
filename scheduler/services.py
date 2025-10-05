@@ -7,7 +7,7 @@ def process_review(user_id, flashcard, rating, idempotency_key):
     already_exists = ReviewResult.objects.filter(idempotency_key=idempotency_key).first()
     if already_exists: return already_exists.due_date
 
-    last_review = ReviewResult.objects.filter(userID=user_id, flashcard=flashcard).order_by('-due_date').first()
+    last_review = ReviewResult.objects.filter(userID=user_id, flashcard=flashcard).order_by('due_date').first()
 
     now = timezone.now()
 
