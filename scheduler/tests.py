@@ -5,7 +5,7 @@ from rest_framework import status
 
 from rest_framework.test import APITestCase
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from scheduler.models import Flashcard, ReviewResult, ReviewRating
 from scheduler.serializers import FlashcardSerializer, ReviewResultSerializer
@@ -145,7 +145,7 @@ class MonotonicIntervalTest(APITestCase):
         self.userID = 105
         self.flashcard = Flashcard.objects.create(vocab="Testing Monotonic Interval")
 
-        self.review_url = reverse('review')
+        self.url = reverse('review')
         self.review_payload_1 = {
             'flashcard': self.flashcard.id,
             'userID': self.userID,
@@ -160,14 +160,44 @@ class MonotonicIntervalTest(APITestCase):
         }
 
     def test_monotonic_interval(self):
-        first_response = self.client.post(self.review_url, self.review_payload_1, format='json')
+        first_response = self.client.post(self.url, self.review_payload_1, format='json')
         first_data = first_response.json()
         first_due_date = first_data['new_due_date']
 
-        second_response = self.client.post(self.review_url, self.review_payload_2, format='json')
+        second_response = self.client.post(self.url, self.review_payload_2, format='json')
         second_data = second_response.json()
         second_due_date = second_data['new_due_date']
 
         self.assertEqual(first_due_date, second_due_date)
+
+class OverwriteDueDateOnForgotTest(APITestCase):
+    def setUp(self):
+        self.userID = 106
+        self.flashcard = Flashcard.objects.create(vocab="Testing On Forgot")
+
+        self.url = reverse('review')
+        self.review_payload_1 = {
+            'flashcard': self.flashcard.id,
+            'userID': self.userID,
+            'rating': ReviewRating.INSTANT,
+            'idempotency_key': "checkOnForgot1"
+        }
+        self.review_payload_2 = {
+            'flashcard': self.flashcard.id,
+            'userID': self.userID,
+            'rating': ReviewRating.FORGOT,
+            "idempotency_key": "checkOnForgot2"
+        }
+
+    def test_overwrite_on_forgot(self):
+        first_response = self.client.post(self.url, self.review_payload_1, format='json')
+        first_data = first_response.json()
+        first_dt = datetime.fromisoformat(first_data['new_due_date'])
+
+        second_response = self.client.post(self.url, self.review_payload_2, format='json')
+        second_data = second_response.json()
+        second_dt = datetime.fromisoformat(second_data['new_due_date'])
+
+        self.assertTrue(second_dt < first_dt)
 
 
