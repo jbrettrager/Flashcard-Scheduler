@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from datetime import datetime
+from dateutil.parser import isoparse
 from .models import ReviewResult
 from .serializers import ReviewResultSerializer
 from .services import process_review
@@ -40,7 +40,7 @@ class DueCardsAPIView(APIView):
             return Response({'error': 'No until date attached to request.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            until_time = datetime.fromisoformat(until_timestamp)
+            until_time = isoparse(until_timestamp)
         except ValueError:
             return Response({'error': 'Invalid until time. Please use timestamps in ISO8601 format.'}, status=status.HTTP_400_BAD_REQUEST)
 

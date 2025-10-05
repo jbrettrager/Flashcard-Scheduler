@@ -2,11 +2,9 @@ from django.test import TestCase
 from django.utils import timezone
 from django.urls import reverse
 from rest_framework import status
-
 from rest_framework.test import APITestCase
-
 from datetime import timedelta, datetime
-
+from dateutil.parser import isoparse
 from scheduler.models import Flashcard, ReviewResult, ReviewRating
 from scheduler.serializers import FlashcardSerializer, ReviewResultSerializer
 
@@ -192,11 +190,11 @@ class OverwriteDueDateOnForgotTest(APITestCase):
     def test_overwrite_on_forgot(self):
         first_response = self.client.post(self.url, self.review_payload_1, format='json')
         first_data = first_response.json()
-        first_dt = datetime.fromisoformat(first_data['new_due_date'])
+        first_dt = isoparse(first_data['new_due_date'])
 
         second_response = self.client.post(self.url, self.review_payload_2, format='json')
         second_data = second_response.json()
-        second_dt = datetime.fromisoformat(second_data['new_due_date'])
+        second_dt = isoparse(second_data['new_due_date'])
 
         self.assertTrue(second_dt < first_dt)
 
