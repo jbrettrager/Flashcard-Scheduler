@@ -6,29 +6,27 @@ from .models import ReviewResult, Flashcard, ReviewRating
 # POST /review services
 def process_review(review):
     # Check idempotency_key
-    existing_entry = ReviewResult.objects.filter(idempotency_key=review['idempotency_key']).first()
-    if existing_entry:
-        existing_due_jst = convert_timezone(existing_entry.due_date, "Asia/Tokyo")
+    repeat_entry = ReviewResult.objects.filter(idempotency_key=review['idempotency_key']).first()
+    if repeat_entry:
+        existing_due_jst = convert_timezone(repeat_entry.due_date, "Asia/Tokyo")
         return existing_due_jst
 
     flashcard_instance = Flashcard.objects.get(id=review['flashcard'])
 
-    last_review = ReviewResult.objects.filter(userID=review['userID'], flashcard=flashcard_instance).order_by('due_date').first()
+    last_review = ReviewResult.objects.filter(userID=review['userID'], flashcard=flashcard_instance).order_by('-submit_date').first()
 
     next_due = get_next_due_date(review['rating'], last_review)
 
     next_due_jst = next_due.astimezone(ZoneInfo('Asia/Tokyo')).isoformat()
 
-    ReviewResult.objects.update_or_create(
+    ReviewResult.objects.create(
         userID=review['userID'],
         flashcard=flashcard_instance,
-        defaults={
-            'rating':review['rating'],
-            'idempotency_key':review['idempotency_key'],
-            'due_date':next_due,
-        }
+        rating=review['rating'],
+        submit_date=timezone.now(),
+        idempotency_key=review['idempotency_key'],
+        due_date=next_due)
 
-    )
     return next_due_jst
 
 def get_next_due_date(rating, prev_review):
@@ -56,13 +54,14 @@ def get_due_cards(user_id, until_time):
     utc_until_time = convert_timezone(until_time, 'UTC')
 
     for card in cards:
-        review = ReviewResult.objects.filter(userID=user_id, flashcard=card).order_by('-due_date').first()
+        review = ReviewResult.objects.filter(userID=user_id, flashcard=card).order_by('-submit_date').first()
 
         if not review:
             review = ReviewResult.objects.create(
                 userID = user_id,
                 flashcard=card,
                 rating=ReviewRating.FORGOT,
+                submit_date=timezone.now(),
                 due_date=timezone.now(),
                 idempotency_key="none"
             )
