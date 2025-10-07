@@ -198,4 +198,27 @@ class OverwriteDueDateOnForgotTest(APITestCase):
 
         self.assertTrue(second_dt < first_dt)
 
+class IdempotencyTest(APITestCase):
+    def setUp(self):
+        self.userID = 107
+        self.flashcard = Flashcard.objects.create(vocab="Testing Idempotency")
+        self.review_url = reverse('review')
+        self.due_cards_url = reverse('due-cards', kwargs={'user_id':self.userID})
+        self.until_time = timezone.now() + timedelta(days=14)
 
+        self.review_payload_1 = {
+            'flashcard': self.flashcard.id,
+            'userID': self.userID,
+            'rating': ReviewRating.INSTANT,
+            'idempotency_key': "checkIdempotency"
+        }
+
+    def test_review_idempotency(self):
+        first_response = self.client.post(self.review_url, self.review_payload_1, format='json')
+        second_response = self.client.post(self.review_url, self.review_payload_1, format='json')
+        self.assertEqual(first_response, second_response)
+
+    def test_due_cards_idempotency(self):
+        first_response = self.client.get(self.due_cards_url, {'until': self.until_time.isoformat()}, format='json')
+        second_response = self.client.get(self.due_cards_url, {'until': self.until_time.isoformat()}, format='json')
+        self.assertEqual(first_response, second_response)
