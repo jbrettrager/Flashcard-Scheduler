@@ -10,7 +10,7 @@ class ReviewAPIView(APIView):
     def post(self, request):
         updated_due_jst = process_review(request.data)
 
-        return Response({'new_due_date': updated_due_jst.isoformat()})
+        return Response({'new_due_date': updated_due_jst})
 
 class DueCardsAPIView(APIView):
     def get(self, request, user_id):
