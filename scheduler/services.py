@@ -30,6 +30,7 @@ def process_review(review):
     return next_due_jst
 
 def get_next_due_date(rating, prev_review):
+    # TODO: Change to a more robust algorithm
     next_due = timezone.now()
     if rating == 0:
         next_due = next_due + timedelta(minutes=1)
