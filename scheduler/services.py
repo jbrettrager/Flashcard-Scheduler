@@ -17,7 +17,7 @@ def process_review(review):
 
     next_due = get_next_due_date(review['rating'], last_review)
 
-    next_due_jst = convert_timezone(next_due, 'Asia/Tokyo')
+    next_due_jst = next_due.astimezone(ZoneInfo('Asia/Tokyo')).isoformat()
 
     ReviewResult.objects.update_or_create(
         userID=review['userID'],
@@ -50,6 +50,7 @@ def convert_timezone(timestamp, time_zone_name):
 
 # GET /due-cards service
 def get_due_cards(user_id, until_time):
+    original_timezone = until_time.tzinfo
     cards = Flashcard.objects.all()
     result = []
     utc_until_time = convert_timezone(until_time, 'UTC')
@@ -66,7 +67,7 @@ def get_due_cards(user_id, until_time):
                 idempotency_key="none"
             )
         if review.due_date <= utc_until_time:
-            due_date_jst = convert_timezone(review.due_date, 'Asia/Tokyo').isoformat()
+            due_date_jst = review.due_date.astimezone(original_timezone).isoformat()
             result.append({
                 'id': card.id,
                 'vocab': card.vocab,
