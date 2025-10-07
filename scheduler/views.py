@@ -14,9 +14,11 @@ class ReviewAPIView(APIView):
         "idempotency_key": str,
     }
     def post(self, request):
+
         is_valid, error_msg =  self.validate_request_json(request.data)
         if not is_valid:
             return Response(error_msg, status=status.HTTP_400_BAD_REQUEST)
+
         updated_due_jst = process_review(request.data)
 
         return Response({'new_due_date': updated_due_jst})
@@ -32,6 +34,10 @@ class ReviewAPIView(APIView):
 
 class DueCardsAPIView(APIView):
     def get(self, request, user_id):
+        is_valid, error_msg = self.validate_request(request, user_id)
+        if not is_valid:
+            return Response(error_msg, status=status.HTTP_400_BAD_REQUEST)
+
         until_timestamp = request.query_params.get('until')
 
         if not until_timestamp:
@@ -48,3 +54,20 @@ class DueCardsAPIView(APIView):
         result = [{'flashcard_vocab': card['vocab'], 'due_date': card['due_date']} for card in due_cards]
 
         return Response(result, status=status.HTTP_200_OK)
+
+    def validate_request(self, request, user_id):
+        until_timestamp = request.query_params.get('until')
+        if not until_timestamp:
+            return False, f"No until date attached to request."
+        try:
+            until_time = datetime.fromisoformat(until_timestamp)
+        except ValueError:
+            return False, f"Invalid until time. Please use timestamps in ISO8601 format."
+
+        try:
+            int(user_id)
+        except ValueError:
+            return False, f"Invalid userID. Please use an integer."
+
+        return True, None
+
