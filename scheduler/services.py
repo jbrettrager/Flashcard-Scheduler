@@ -8,7 +8,7 @@ def process_review(review):
     # Check idempotency_key
     repeat_entry = ReviewResult.objects.filter(idempotency_key=review['idempotency_key']).first()
     if repeat_entry:
-        existing_due_jst = convert_timezone(repeat_entry.due_date, "Asia/Tokyo")
+        existing_due_jst = repeat_entry.due_date.astimezone(ZoneInfo('Asia/Tokyo')).isoformat()
         return existing_due_jst
 
     flashcard_instance = Flashcard.objects.get(id=review['flashcard'])
@@ -43,15 +43,12 @@ def get_next_due_date(rating, prev_review):
         next_due = max(prev_review.due_date, next_due + base)
     return next_due
 
-def convert_timezone(timestamp, time_zone_name):
-    return timestamp.astimezone(ZoneInfo(time_zone_name))
-
 # GET /due-cards service
 def get_due_cards(user_id, until_time):
     original_timezone = until_time.tzinfo
     cards = Flashcard.objects.all()
     result = []
-    utc_until_time = convert_timezone(until_time, 'UTC')
+    utc_until_time = until_time.astimezone(ZoneInfo('UTC'))
 
     for card in cards:
         review = ReviewResult.objects.filter(userID=user_id, flashcard=card).order_by('-submit_date').first()
