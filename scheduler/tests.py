@@ -212,6 +212,13 @@ class DueCardsAPITest(APITestCase):
         self.assertNotIn(self.flashcard1.vocab, returned_cards)
         self.assertIn(self.flashcard2.vocab, returned_cards)
 
+    def test_user_id_validation(self):
+        response = self.client.get(self.url, {'userID': "not a number"}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_until_time_validation(self):
+        response = self.client.get(self.url, {'until': "not an ISO 8601 timestamp"}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 # Idempotency Tests
 class IdempotencyTest(APITestCase):
     def setUp(self):
