@@ -112,45 +112,6 @@ class ReviewAPITest(APITestCase):
         response = self.client.post(self.url, self.bad_payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-class DueCardsAPITest(APITestCase):
-    def setUp(self):
-        self.userID = 103
-        self.flashcard1 = Flashcard.objects.create(vocab="Testing GET endpoint, card 1")
-        self.flashcard2 = Flashcard.objects.create(vocab="Testing GET endpoint, card 2")
-
-        self.due_soon = timezone.now() + timedelta(minutes=1)
-        self.due_later = timezone.now() + timedelta(days=15)
-
-        ReviewResult.objects.create(
-            flashcard=self.flashcard1,
-            userID=self.userID,
-            rating=ReviewRating.INSTANT,
-            submit_date=timezone.now(),
-            due_date=self.due_later,
-            idempotency_key='dueAPITestKey1'
-        )
-        ReviewResult.objects.create(
-            flashcard=self.flashcard2,
-            userID=self.userID,
-            rating=ReviewRating.FORGOT,
-            submit_date=timezone.now(),
-            due_date=self.due_soon,
-            idempotency_key='dueAPITestKey2'
-        )
-
-        self.url=reverse('due-cards',kwargs={'user_id':self.userID})
-
-    def test_get_due_cards(self):
-        until_time = (timezone.now() + timedelta(days=7)).isoformat()
-        response = self.client.get(self.url, {'until': until_time}, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        data = response.json()
-        returned_cards = [item['flashcard_vocab'] for item in data]
-        self.assertNotIn(self.flashcard1.vocab, returned_cards)
-        self.assertIn(self.flashcard2.vocab, returned_cards)
-
 class MonotonicIntervalTest(APITestCase):
     def setUp(self):
         self.userID = 105
@@ -211,6 +172,47 @@ class OverwriteDueDateOnForgotTest(APITestCase):
 
         self.assertTrue(second_dt < first_dt)
 
+# GET /users/{id}/due-cards tests
+class DueCardsAPITest(APITestCase):
+    def setUp(self):
+        self.userID = 103
+        self.flashcard1 = Flashcard.objects.create(vocab="Testing GET endpoint, card 1")
+        self.flashcard2 = Flashcard.objects.create(vocab="Testing GET endpoint, card 2")
+
+        self.due_soon = timezone.now() + timedelta(minutes=1)
+        self.due_later = timezone.now() + timedelta(days=15)
+
+        ReviewResult.objects.create(
+            flashcard=self.flashcard1,
+            userID=self.userID,
+            rating=ReviewRating.INSTANT,
+            submit_date=timezone.now(),
+            due_date=self.due_later,
+            idempotency_key='dueAPITestKey1'
+        )
+        ReviewResult.objects.create(
+            flashcard=self.flashcard2,
+            userID=self.userID,
+            rating=ReviewRating.FORGOT,
+            submit_date=timezone.now(),
+            due_date=self.due_soon,
+            idempotency_key='dueAPITestKey2'
+        )
+
+        self.url=reverse('due-cards',kwargs={'user_id':self.userID})
+
+    def test_get_due_cards(self):
+        until_time = (timezone.now() + timedelta(days=7)).isoformat()
+        response = self.client.get(self.url, {'until': until_time}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        returned_cards = [item['flashcard_vocab'] for item in data]
+        self.assertNotIn(self.flashcard1.vocab, returned_cards)
+        self.assertIn(self.flashcard2.vocab, returned_cards)
+
+# Idempotency Tests
 class IdempotencyTest(APITestCase):
     def setUp(self):
         self.userID = 107
