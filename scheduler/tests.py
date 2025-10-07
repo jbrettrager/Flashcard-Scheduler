@@ -31,6 +31,7 @@ class ReviewResultModelTest(TestCase):
         self.review = ReviewResult.objects.create(
             userID=self.userID,
             flashcard=self.flashcard,
+            submit_date=timezone.now(),
             rating=ReviewRating.INSTANT,
             due_date=timezone.now() + timedelta(days=30),
             idempotency_key='asdfjkl')
@@ -114,6 +115,7 @@ class DueCardsAPITest(APITestCase):
             flashcard=self.flashcard1,
             userID=self.userID,
             rating=ReviewRating.INSTANT,
+            submit_date=timezone.now(),
             due_date=self.due_later,
             idempotency_key='dueAPITestKey1'
         )
@@ -121,6 +123,7 @@ class DueCardsAPITest(APITestCase):
             flashcard=self.flashcard2,
             userID=self.userID,
             rating=ReviewRating.FORGOT,
+            submit_date=timezone.now(),
             due_date=self.due_soon,
             idempotency_key='dueAPITestKey2'
         )

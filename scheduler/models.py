@@ -17,8 +17,7 @@ class ReviewResult(models.Model):
     flashcard = models.ForeignKey(Flashcard, on_delete=models.CASCADE)
     userID = models.IntegerField()
     rating = models.IntegerField(choices=ReviewRating.choices)
+    submit_date = models.DateTimeField(null=True, blank=True)
     due_date = models.DateTimeField(null=True, blank=True)
     idempotency_key = models.CharField(max_length=255)
 
-    class Meta:
-        unique_together = ('flashcard', 'userID')
