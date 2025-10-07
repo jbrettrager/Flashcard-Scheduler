@@ -94,6 +94,12 @@ class ReviewAPITest(APITestCase):
             'rating': ReviewRating.REMEMBERED,
             'idempotency_key': 'reviewAPItest'
         }
+        self.bad_payload = {
+            'notTheRightKey': self.flashcard.id,
+            'userID': self.userID,
+            'rating': ReviewRating.REMEMBERED,
+            'idempotency_key': 'reviewAPItest'
+        }
 
     def test_post_review_endpoint(self):
         response = self.client.post(self.url, self.payload, format='json')
@@ -101,6 +107,10 @@ class ReviewAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertIn('new_due_date', data)
+
+    def test_review_json_validation(self):
+        response = self.client.post(self.url, self.bad_payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class DueCardsAPITest(APITestCase):
     def setUp(self):
