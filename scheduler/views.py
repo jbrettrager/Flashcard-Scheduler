@@ -1,36 +1,16 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from dateutil.parser import isoparse
-from .models import ReviewResult
-from .serializers import ReviewResultSerializer
-from .services import process_review
+from dateutil.parser import isoparse, parse
+from .services import process_review, get_due_cards
 
 
 # Create your views here.
 class ReviewAPIView(APIView):
     def post(self, request):
-        flashcard_id = request.data['flashcard']
-        user_id = request.data['userID']
-        rating = request.data['rating']
-        idempotency_key = request.data['idempotency_key']
+        updated_due_jst = process_review(request.data)
 
-        existing_review = ReviewResult.objects.filter(userID=user_id, flashcard=flashcard_id).first()
-
-        serializer = ReviewResultSerializer(
-            instance=existing_review,
-            data=request.data)
-
-        if serializer.is_valid():
-            due_date = process_review(
-                user_id=user_id,
-                flashcard=flashcard_id,
-                rating=rating,
-                idempotency_key=idempotency_key,
-            )
-            return Response({'new_due_date': due_date.isoformat()})
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'new_due_date': updated_due_jst.isoformat()})
 
 class DueCardsAPIView(APIView):
     def get(self, request, user_id):
@@ -40,12 +20,13 @@ class DueCardsAPIView(APIView):
             return Response({'error': 'No until date attached to request.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            until_time = isoparse(until_timestamp)
+            until_time = parse(until_timestamp)
         except ValueError:
             return Response({'error': 'Invalid until time. Please use timestamps in ISO8601 format.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        due_cards = ReviewResult.objects.filter(userID=user_id, due_date__lte=until_time)
+        parsed_user_id = int(user_id)
+        due_cards = get_due_cards(parsed_user_id, until_time)
 
-        result = [{'flashcard_vocab': r.flashcard.vocab, 'due_date': r.due_date} for r in due_cards]
+        result = [{'flashcard_vocab': card['vocab'], 'due_date': card['due_date']} for card in due_cards]
 
         return Response(result, status=status.HTTP_200_OK)
