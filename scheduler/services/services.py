@@ -23,7 +23,7 @@ def process_review(review):
     last_review = ReviewResult.objects.filter(userID=review['userID'], flashcard=flashcard_instance).order_by('-submit_date').first()
 
 
-    next_due = get_next_due_date(review['rating'], last_review)
+    next_due = get_new_due_date(review['rating'], last_review)
     next_due_converted_tz = next_due.astimezone(original_timezone).isoformat()
 
     ReviewResult.objects.create(
@@ -36,7 +36,7 @@ def process_review(review):
 
     return next_due_converted_tz
 
-def get_next_due_date(rating, prev_review):
+def get_new_due_date(rating, prev_review):
     is_first_review = prev_review is None
     is_incorrect = rating == 0
 
@@ -61,11 +61,11 @@ def get_next_due_date(rating, prev_review):
         multiplier = 2.5
 
     new_interval = timedelta(seconds=prev_interval_seconds * multiplier)
-    next_due = now + new_interval
+    new_due_date = now + new_interval
 
-    next_due = max(next_due, prev_review.due_date) # For monotonicity, will not reduce the interval on 2 correct answers
+    new_due_date = max(new_due_date, prev_review.due_date) # For monotonicity, will not reduce the interval on 2 correct answers
 
-    return next_due
+    return new_due_date
 # GET /due-cards service
 def get_due_cards(user_id, until_time):
     result = []
