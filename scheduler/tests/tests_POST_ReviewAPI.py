@@ -66,7 +66,7 @@ class MonotonicIntervalTest(APITestCase):
         second_data = second_response.json()
         second_due_date = second_data['new_due_date']
 
-        self.assertEqual(first_due_date, second_due_date)
+        self.assertGreaterEqual(second_due_date, first_due_date)
 
 class OverwriteDueDateOnForgotTest(APITestCase):
     def setUp(self):

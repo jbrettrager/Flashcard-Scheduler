@@ -37,20 +37,35 @@ def process_review(review):
     return next_due_converted_tz
 
 def get_next_due_date(rating, prev_review):
-    # TODO: Change to a more robust algorithm
-    next_due = timezone.now()
-    if rating == 0:
-        next_due = next_due + timedelta(minutes=1)
-    elif not prev_review:
-        if rating == 1:
-            next_due = next_due + timedelta(days=5)
-        elif rating == 2:
-            next_due = next_due + timedelta(days=15)
-    else:
-        base = timedelta(days=15 if rating == 2 else 5)
-        next_due = max(prev_review.due_date, next_due + base)
-    return next_due
+    is_first_review = prev_review is None
+    is_incorrect = rating == 0
 
+    now = timezone.now()
+
+    if is_incorrect:
+        return now + timedelta(minutes=1)
+    elif is_first_review:
+        if rating == 1:
+            return now + timedelta(days=5)
+        elif rating == 2:
+            return now + timedelta(days=15)
+
+    prev_interval = prev_review.due_date - prev_review.submit_date
+    prev_interval_seconds = max(prev_interval.total_seconds(), 60)
+
+    multiplier = 1
+
+    if rating == 1:
+        multiplier = 1.5
+    elif rating == 2:
+        multiplier = 2.5
+
+    new_interval = timedelta(seconds=prev_interval_seconds * multiplier)
+    next_due = now + new_interval
+
+    next_due = max(next_due, prev_review.due_date) # For monotonicity, will not reduce the interval on 2 correct answers
+
+    return next_due
 # GET /due-cards service
 def get_due_cards(user_id, until_time):
     result = []
