@@ -1,5 +1,5 @@
 ﻿from rest_framework import serializers
-from scheduler.models import Flashcard, ReviewResult
+from scheduler.models.models import Flashcard, ReviewResult
 
 
 def validate_vocab(value):

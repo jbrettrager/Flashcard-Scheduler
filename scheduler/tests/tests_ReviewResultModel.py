@@ -1,8 +1,8 @@
 ﻿from django.test import TestCase
 from django.utils import timezone
 from datetime import timedelta
-from scheduler.models import Flashcard, ReviewResult, ReviewRating
-from scheduler.serializers import ReviewResultSerializer
+from scheduler.models.models import Flashcard, ReviewResult, ReviewRating
+from scheduler.models.serializers import ReviewResultSerializer
 class ReviewResultModelTest(TestCase):
     def setUp(self):
         self.userID = 100

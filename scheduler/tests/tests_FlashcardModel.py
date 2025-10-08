@@ -1,6 +1,6 @@
 ﻿from django.test import TestCase
-from scheduler.models import Flashcard
-from scheduler.serializers import FlashcardSerializer
+from scheduler.models.models import Flashcard
+from scheduler.models.serializers import FlashcardSerializer
 
 class FlashcardModelTest(TestCase):
     def test_flashcard_creation(self):

@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from dateutil.parser import isoparse
-from scheduler.models import Flashcard, ReviewRating
+from scheduler.models.models import Flashcard, ReviewRating
 
 class ReviewAPITest(APITestCase):
     def setUp(self):

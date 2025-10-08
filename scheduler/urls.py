@@ -1,5 +1,5 @@
 ﻿from django.urls import path
-from .views import ReviewAPIView, DueCardsAPIView
+from scheduler.views.views import ReviewAPIView, DueCardsAPIView
 
 urlpatterns = [
     path('review/', ReviewAPIView.as_view(), name='review'),

@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from datetime import timedelta
-from scheduler.models import Flashcard, ReviewResult, ReviewRating
+from scheduler.models.models import Flashcard, ReviewResult, ReviewRating
 
 class DueCardsAPITest(APITestCase):
     def setUp(self):

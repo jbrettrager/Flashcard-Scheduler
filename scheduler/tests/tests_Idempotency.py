@@ -2,7 +2,7 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from datetime import timedelta
-from scheduler.models import Flashcard,ReviewRating
+from scheduler.models.models import Flashcard,ReviewRating
 
 class IdempotencyTest(APITestCase):
     def setUp(self):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Flashcard, ReviewResult
+from scheduler.models.models import Flashcard, ReviewResult
 
 # Register your models here.
 admin.site.register(Flashcard)

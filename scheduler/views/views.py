@@ -1,8 +1,5 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from datetime import datetime
-from scheduler.services import process_review, get_due_cards
+from scheduler.services.services import process_review, get_due_cards
 from scheduler.views.ViewBase import PostAPIView, GetAPIView
 
 
