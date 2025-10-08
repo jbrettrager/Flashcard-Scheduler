@@ -40,8 +40,6 @@ class DueCardsAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.json()
-        print("RESPONSE DATA FROM TEST!")
-        print(data)
         returned_cards = [item['flashcard_vocab'] for item in data]
         self.assertNotIn(self.flashcard1.vocab, returned_cards)
         self.assertIn(self.flashcard2.vocab, returned_cards)
