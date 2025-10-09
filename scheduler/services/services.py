@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 from scheduler.models.models import ReviewResult, Flashcard, ReviewRating
 from datetime import datetime
 from django.db import transaction, IntegrityError
+import uuid
 
 # POST /review services
 @transaction.atomic
@@ -83,13 +84,14 @@ def get_due_cards(user_id, until_time):
 
         if not review:
             # Create empty ReviewResult if no result exists
+            random_idempotency_key = str(uuid.uuid4()) # Generate random idempotency key
             review = ReviewResult.objects.create(
                 userID = user_id,
                 flashcard=card,
                 rating=ReviewRating.FORGOT,
                 submit_date=timezone.now(),
                 due_date=timezone.now(),
-                idempotency_key="none"
+                idempotency_key=random_idempotency_key
             )
         if review.due_date <= utc_until_time:
             due_date_converted = review.get_converted_due_date(original_timezone)
