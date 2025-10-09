@@ -3,6 +3,27 @@
 ## Overview
 This project implements a spaced repetition API for reviewing flashcards, built using the Django REST Framework.
 
+## Initial Setup
+
+This project uses Docker for containerized development and testing.  
+Building the container automatically applies database migrations, and installs required modules.
+
+```
+docker-compose build
+```
+
+### Run tests
+
+```
+docker-compose run --rm web python manage.py test
+```
+
+### Run server
+
+```
+docker-compose up
+```
+
 ## Algorithm Description
 The review interval is determined by the user's rating after each review, as well as the interval given to the user from the previous review:
 - The algorithm uses a Rating that is passed in the request body of the following format: 
@@ -66,27 +87,17 @@ The API Endpoints exchange compact JSON payloads - only essential fields are ret
   - Caching of "due-cards" queries to reduce repetitive filtering.
   - Currently, **@transaction.atomic** is used to account for concurrent requests to counteract potential race conditions when writing to the database. If queries on this endpoint were to increase significantly, an asynchronous background task manager (such as Celery) could be implemented.
   - While the algorithm for new_due_date is O(1) complexity, the algorithm used by the /due-cards/ endpoint is O(n). In the event of a mass amount of cards being added to the system, the query could be optimized by the use of a subquery.
-    - Trade-Off: I had chosen to do this intentionally, as looping over each card is easier to read and implement over implementing a subquery.
-## Initial Setup
+## Trade-off Discussion
+  1. **Database Queries**
+  - Chose a simple for loop approach to locate and iterate through all flashcards in the database to find corresponding user reviews. 
+  - Trade-off: Easy to implement and easy to read, but introduces an N+1 query issue for larger datasets. Could optimize with the use of subqueries at the cost of more difficult to read code.
+  2. **Timezone Handling**
+  - Convert user timezone to UTC on retrieval.
+  - Trade-off: Slight overhead, but ensures that all times in the database are uniformly UTC, while maintaining the ability to return timestamps in the user's timezone.
+  3. **Code Complexity vs Maintainability**
+  - Chose readability and simplicity over aggressively optimizing SQL queries. 
+  - Trade-off: Minor performance costs, but makes it easier for future developers to understand and maintain the system.
 
-This project uses Docker for containerized development and testing.  
-Building the container automatically applies database migrations, and installs required modules.
-
-```
-docker-compose build
-```
-
-### Run tests
-
-```
-docker-compose run --rm web python manage.py test
-```
-
-### Run server
-
-```
-docker-compose up
-```
 
 ## Technologies Used
 - **Python 3.13**
