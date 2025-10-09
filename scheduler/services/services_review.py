@@ -62,8 +62,7 @@ def get_new_due_date(rating, prev_review):
         multiplier = 2.5
 
     new_interval = timedelta(seconds=prev_interval_seconds * multiplier)
-    new_due_date = now + new_interval
 
-    new_due_date = max(new_due_date, prev_review.due_date) # For monotonicity, will not reduce the interval on 2 correct answers
+    new_due_date = now + new_interval
 
     return new_due_date

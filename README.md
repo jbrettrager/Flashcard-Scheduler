@@ -33,8 +33,8 @@ else:
     new_interval = previous_interval_seconds * multiplier
     next_due = now + new_interval
     
-    # Monotonicity Check
-    new_due_date = max(next_due, previous_due_date)
+    # As the above new_interval multiplies the previous interval by at least 1.5, 
+    # it will never reduce in the instance of 2 correct answers back to back.
 ```
 
 ## Explanation
@@ -51,7 +51,7 @@ else:
 | Increasing interval after remembering word | Each correct recall will increase the review interval by a multiplier that is greater than 1.                  | Remembered with effort results in a multiplier of 1.5, and instantly remember results in a multiplier of 2.5.                      |
 | Reset after forgetting word                | Forgotten cards should be due again immediately after forgetting.                                              | A rating of 0 (forgot) resets interval to 1 minute.                                                                                |
 | First Review special case                  | If the user instantly remembers (rating 2) on the first review, card must produce the longest initial interval | Algorithm checks if this is the first review, gives the longest initial interval (of 15 days) if instantly remembered (rating = 2) |
-| Monotonicity                               | Subsequent correct answers must not shorten the previously scheduled interval                                  | Final monotonicity check in the algorithm ensures that the interval is not shortened.                                              |
+| Monotonicity                               | Subsequent correct answers must not shorten the previously scheduled interval                                  | Previous interval is multiplied by a multiplier which is guaranteed to be 1.5 or greater, insuring it cannot be reduced.           |
 
 ## Performance Notes
 - **Algorithmic Efficiency:**
@@ -66,6 +66,7 @@ The API Endpoints exchange compact JSON payloads - only essential fields are ret
   - Caching of "due-cards" queries to reduce repetitive filtering.
   - Currently, **@transaction.atomic** is used to account for concurrent requests to counteract potential race conditions when writing to the database. If queries on this endpoint were to increase significantly, an asynchronous background task manager (such as Celery) could be implemented.
   - While the algorithm for new_due_date is O(1) complexity, the algorithm used by the /due-cards/ endpoint is O(n). In the event of a mass amount of cards being added to the system, the query could be optimized by the use of a subquery.
+    - Trade-Off: I had chosen to do this intentionally, as looping over each card is easier to read and implement over implementing a subquery.
 ## Initial Setup
 
 This project uses Docker for containerized development and testing.  
