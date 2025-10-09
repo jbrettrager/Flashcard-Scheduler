@@ -1,4 +1,6 @@
 ﻿from datetime import timedelta
+from zoneinfo import ZoneInfo
+
 from django.utils import timezone
 from scheduler.models.models import ReviewResult, Flashcard
 from datetime import datetime
@@ -10,6 +12,9 @@ def process_review(review):
     # Get user timezone
     timestamp_dt = datetime.fromisoformat(review['timestamp'])
     original_timezone = timestamp_dt.tzinfo
+
+    # Convert timestamp into UTC
+    timestamp_utc = timestamp_dt.astimezone(ZoneInfo("UTC"))
 
     # Check idempotency
     repeat_entry = ReviewResult.objects.filter(idempotency_key=review['idempotency_key']).first()
@@ -31,7 +36,7 @@ def process_review(review):
         userID=review['userID'],
         flashcard=flashcard_instance,
         rating=review['rating'],
-        submit_date=review['timestamp'],
+        submit_date=timestamp_utc,
         idempotency_key=review['idempotency_key'],
         due_date=next_due)
 
