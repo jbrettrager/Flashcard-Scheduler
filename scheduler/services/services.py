@@ -3,8 +3,10 @@ from django.utils import timezone
 from zoneinfo import ZoneInfo
 from scheduler.models.models import ReviewResult, Flashcard, ReviewRating
 from datetime import datetime
+from django.db import transaction, IntegrityError
 
 # POST /review services
+@transaction.atomic
 def process_review(review):
     # Get user timezone
     timestamp_dt = datetime.fromisoformat(review['timestamp'])
