@@ -1,0 +1,106 @@
+﻿openapi: 3.1.0
+info:
+  title: Flashcard Scheduler API
+  description: REST API used for spaced repetition of flashcard reviews.
+  version: 1.0.0
+servers:
+  - url: 'http'
+paths:
+  /api/review/:
+    post:
+      summary: Submit a flashcard review.
+      description: Calculates the next due date based off of user rating as well as past reviews.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                flashcard:
+                  type: integer
+                  example: {2}
+                rating:
+                  type: integer
+                  enum: { [0,1,2] }
+                  description: 0=Forgot, 1=Remembered with effort, 2=Instantly remembered
+      responses:
+        "200":
+          description: Successful review update
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  new_due_date:
+                    type: string
+                    format: date-time
+                    example: { "2025-10-09T10:30:00+09:00" }
+        "400":
+          description: Request JSON was invalid.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: {"An example error message showing what was missing or incorrect from the request JSON."}
+
+  /api/users/{userID}/due-cards/?until=:
+    get:
+      summary: Get the cards due before the date specified in the "until" query parameter.
+      description: Searches the database for all cards for that user, finds their most recent review, and returns all of the cards that are set as due before the specified until period.
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user whose due flashcards are being requested.
+
+        - name: until
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: ISO 8601 timestamp, used to return all cards with due dates before this time.
+
+      responses:
+        "200":
+          description: List of due flashcards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    flashcard_vocab:
+                      type: string
+                      example: {"Voracious"}
+                      flashcard_id:
+                        type: integer
+                        example: {22}
+                      due_date:
+                        type: string
+                        format: date-time
+                        example: {"2025-10-20T10:30:00+09:00"}
+
+        "400":
+          description: Invalid or missing input in request.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: {"Example error message string describing what was missing or incorrect from the request."}
+
+
+
+
+
+  

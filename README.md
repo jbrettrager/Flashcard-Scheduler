@@ -1,4 +1,4 @@
-# Flashcard 
+# Flashcard Scheduler API
 
 ## Overview
 This project implements a spaced repetition API for reviewing flashcards, built using the Django REST Framework.
@@ -53,13 +53,25 @@ else:
 | First Review special case                  | If the user instantly remembers (rating 2) on the first review, card must produce the longest initial interval | Algorithm checks if this is the first review, gives the longest initial interval (of 15 days) if instantly remembered (rating = 2) |
 | Monotonicity                               | Subsequent correct answers must not shorten the previously scheduled interval                                  | Final monotonicity check in the algorithm ensures that the interval is not shortened.                                              |
 
+## Performance Notes
+- **Algorithmic Efficiency:**
+The new_due_date calculation runs in **O(1)** time per review as it only performs simple arithmetic operations after fetching the previous review record.
+- **Database Efficiency:**
+Retrieval of review results uses Django ORM queries that access only the necessary fields.
+- **Scalability:**
+Since each review update only touches one record (the reviewed card), the system scales linearly with the number of reviews. For larger datasets, additional optimizations (such as async background scheduling, use of a Redis database to cache due cards) could be introduced. 
+- **I/O Considerations:**
+The API Endpoints exchange compact JSON payloads - only essential fields are returned. This keeps the network overhead minimal.
+- **Potential Optimizations:**
+  - Caching of "due-cards" queries to reduce repetitive filtering.
+  - Currently, **@transaction.atomic** is used to account for concurrent requests to counteract potential race conditions when writing to the database. If queries on this endpoint were to increase significantly, an asynchronous background task manager (such as Celery) could be implemented.
+
 ## Initial Setup
 
 This project uses Docker for containerized development and testing.  
-Building the container automatically applies database migrations.
+Building the container automatically applies database migrations, and installs required modules.
 
 ```bash
-pip install -r requirements.txt
 docker-compose build
 ```
 
