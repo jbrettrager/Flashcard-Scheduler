@@ -71,7 +71,7 @@ The API Endpoints exchange compact JSON payloads - only essential fields are ret
 This project uses Docker for containerized development and testing.  
 Building the container automatically applies database migrations, and installs required modules.
 
-```bash
+```
 docker-compose build
 ```
 
