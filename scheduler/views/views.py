@@ -38,7 +38,7 @@ class DueCardsAPIView(GetAPIView):
             return self.error("Invalid userID")
         due_cards = get_due_cards(parsed_user_id, until_time)
 
-        result = [{'flashcard_vocab': card['vocab'], 'flashcard_id': card.id, 'due_date': card['due_date']} for card in due_cards]
+        result = [{'flashcard_vocab': card['vocab'], 'flashcard_id': card['id'], 'due_date': card['due_date']} for card in due_cards]
 
         return self.success(result)
 
