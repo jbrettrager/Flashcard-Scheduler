@@ -20,7 +20,7 @@ class ReviewResult(models.Model):
     rating = models.IntegerField(choices=ReviewRating.choices)
     submit_date = models.DateTimeField(null=True, blank=True)
     due_date = models.DateTimeField(null=True, blank=True)
-    idempotency_key = models.CharField(max_length=255)
+    idempotency_key = models.CharField(max_length=255, unique=True)
 
     def get_converted_due_date(self, tzinfo=None):
         tzinfo = tzinfo or ZoneInfo("UTC")
