@@ -2,7 +2,7 @@
 from zoneinfo import ZoneInfo
 
 from django.utils import timezone
-from scheduler.models.models import ReviewResult, Flashcard
+from scheduler.models.models import ReviewResult, Flashcard, ReviewRating
 from datetime import datetime
 from django.db import transaction
 
@@ -51,9 +51,9 @@ def get_new_due_date(rating, prev_review):
     if is_incorrect:
         return now + timedelta(minutes=1)
     elif is_first_review:
-        if rating == 1:
+        if rating == int(ReviewRating.REMEMBERED):
             return now + timedelta(days=5)
-        elif rating == 2:
+        elif rating == int(ReviewRating.INSTANT):
             return now + timedelta(days=15)
 
     prev_interval = prev_review.due_date - prev_review.submit_date
@@ -61,9 +61,9 @@ def get_new_due_date(rating, prev_review):
 
     multiplier = 1
 
-    if rating == 1:
+    if rating == int(ReviewRating.REMEMBERED):
         multiplier = 1.5
-    elif rating == 2:
+    elif rating == int(ReviewRating.INSTANT):
         multiplier = 2.5
 
     new_interval = timedelta(seconds=prev_interval_seconds * multiplier)
