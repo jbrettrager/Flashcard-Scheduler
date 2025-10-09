@@ -1,9 +1,6 @@
 from django.db import models
 from zoneinfo import ZoneInfo
 
-
-# Create your models here.
-
 class ReviewRating(models.IntegerChoices):
     FORGOT = 0,
     REMEMBERED = 1,

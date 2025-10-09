@@ -1,7 +1,5 @@
 ﻿from rest_framework import serializers
 from scheduler.models.models import Flashcard, ReviewResult
-
-
 def validate_vocab(value):
     if not value:
         raise serializers.ValidationError('vocab cannot be empty')
