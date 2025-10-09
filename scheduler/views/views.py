@@ -1,5 +1,6 @@
 from datetime import datetime
-from scheduler.services.services import process_review, get_due_cards
+from scheduler.services.services_due_cards import get_due_cards
+from scheduler.services.services_review import process_review
 from scheduler.views.ViewBase import PostAPIView, GetAPIView
 
 

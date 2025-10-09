@@ -65,7 +65,7 @@ The API Endpoints exchange compact JSON payloads - only essential fields are ret
 - **Potential Optimizations:**
   - Caching of "due-cards" queries to reduce repetitive filtering.
   - Currently, **@transaction.atomic** is used to account for concurrent requests to counteract potential race conditions when writing to the database. If queries on this endpoint were to increase significantly, an asynchronous background task manager (such as Celery) could be implemented.
-
+  - While the algorithm for new_due_date is O(1) complexity, the algorithm used by the /due-cards/ endpoint is O(n). In the event of a mass amount of cards being added to the system, the query could be optimized by the use of a subquery.
 ## Initial Setup
 
 This project uses Docker for containerized development and testing.  
