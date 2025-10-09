@@ -1,21 +1,6 @@
-from datetime import datetime
+﻿from datetime import datetime
 from scheduler.services.services_due_cards import get_due_cards
-from scheduler.services.services_review import process_review
-from scheduler.views.ViewBase import PostAPIView, GetAPIView
-
-
-# /api/review/
-class ReviewAPIView(PostAPIView):
-    REQUIRED_FIELDS = {
-        "userID": int,
-        "flashcard": int,
-        "rating": int,
-        "timestamp": str,
-        "idempotency_key": str,
-    }
-    def handle(self, request, *args, **kwargs):
-        updated_due = process_review(request.data)
-        return self.success({'new_due_date': updated_due})
+from scheduler.views.ViewBase import GetAPIView
 
 # /api/users/{userID}/due-cards/?until={ISO 8601 Timestamp}
 class DueCardsAPIView(GetAPIView):
@@ -43,5 +28,3 @@ class DueCardsAPIView(GetAPIView):
         result = [{'flashcard_vocab': card['vocab'], 'flashcard_id': card['id'], 'due_date': card['due_date']} for card in due_cards]
 
         return self.success(result)
-
-
