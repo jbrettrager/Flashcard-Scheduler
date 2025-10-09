@@ -19,9 +19,6 @@ class BaseAPIView(APIView, ABC):
     def error(self, message, code=status.HTTP_400_BAD_REQUEST):
         return Response({"error": message}, status=code)
 
-
-
-
 class PostAPIView(BaseAPIView):
     def post(self, request, *args, **kwargs):
         is_valid, error = self.validate_json(request.data)
